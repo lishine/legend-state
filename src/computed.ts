@@ -1,15 +1,24 @@
-import { set as setBase } from './ObservableObject';
+import { getProxy, set as setBase } from './ObservableObject';
 import { batch, notify } from './batching';
+import { createObservable } from './createObservable';
 import { getNode, getNodeValue, setNodeValue } from './globals';
 import { isObservable, lockObservable } from './helpers';
 import { isPromise } from './is';
 import { observable } from './observable';
-import { ObservableComputed, ObservableComputedTwoWay, ObservableReadable } from './observableInterfaces';
+import {
+    ObservableComputed,
+    ObservableComputedTwoWay,
+    ObservableObject,
+    ObservableReadable,
+    ObservableState,
+    WithState,
+} from './observableInterfaces';
 import { observe } from './observe';
 import { onChange } from './onChange';
 
-export function computed<T extends ObservableReadable>(compute: () => T | Promise<T>): T;
-export function computed<T>(compute: () => T | Promise<T>): ObservableComputed<T>;
+export function computed<T extends ObservableReadable>(compute: () => T | Promise<T>): T & WithState;
+export function computed<T>(compute: () => Promise<T>): ObservableComputed<T & WithState>;
+export function computed<T>(compute: () => T): ObservableComputed<T>;
 export function computed<T, T2 = T>(
     compute: (() => T | Promise<T>) | ObservableReadable<T>,
     set: (value: T2) => void,
@@ -99,7 +108,25 @@ export function computed<T, T2 = T>(
             compute,
             ({ value }) => {
                 if (isPromise<T>(value)) {
-                    value.then((v) => setInner(v));
+                    if (!node.state) {
+                        node.state = createObservable<ObservableState>(
+                            {
+                                isLoaded: false,
+                            },
+                            false,
+                            getProxy,
+                        ) as ObservableObject<ObservableState>;
+                    }
+                    setInner(value);
+
+                    value
+                        .then((v) => {
+                            node.state!.isLoaded.set(true);
+                            setInner(v);
+                        })
+                        .catch((error) => {
+                            node.state!.error.set(error);
+                        });
                 } else {
                     setInner(value);
                 }

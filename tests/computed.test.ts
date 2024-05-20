@@ -4,6 +4,7 @@ import {
     computed,
     endBatch,
     isObservable,
+    isPromise,
     Observable,
     observable,
     ObservableReadable,
@@ -135,7 +136,7 @@ describe('Computed', () => {
                 });
             }
         });
-        expect(comp.get()).toEqual(undefined);
+        expect(isPromise(comp.get())).toBe(true);
         await promiseTimeout(10);
         expect(comp.get()).toEqual('hi there');
     });
