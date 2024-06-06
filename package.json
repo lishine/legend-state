@@ -1,6 +1,6 @@
 {
     "name": "@byondxr/legend-state",
-    "version": "2.1.17",
+    "version": "2.1.18",
     "description": "legend-state",
     "sideEffects": false,
     "main": "./index.js",

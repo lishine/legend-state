@@ -54,3 +54,42 @@ delete pkg.scripts;
 delete pkg.engines;
 
 fs.writeFileSync(path.join('dist/package.json'), JSON.stringify(pkg, undefined, 4));
+
+// Recursive function to traverse directories
+function replaceStringInFiles(dirPath, searchString, replaceString) {
+    const files = fs.readdirSync(dirPath);
+
+    for (const file of files) {
+        const filePath = path.join(dirPath, file);
+        const stats = fs.statSync(filePath);
+
+        if (stats.isDirectory()) {
+            replaceStringInFiles(filePath, searchString, replaceString);
+        } else if (stats.isFile()) {
+            fs.readFile(filePath, 'utf8', (err, data) => {
+                if (err) {
+                    console.error(`Error reading file ${filePath}:`, err);
+                    return;
+                }
+
+                const updatedData = data.replace(searchString, replaceString);
+
+                if (updatedData !== data) {
+                    fs.writeFile(filePath, updatedData, 'utf8', (err) => {
+                        if (err) {
+                            console.error(`Error writing file ${filePath}:`, err);
+                        } else {
+                            console.log(`Updated file: ${filePath}`);
+                        }
+                    });
+                }
+            });
+        }
+    }
+}
+
+const directoryPath = 'dist';
+const searchString = '@legendapp/state';
+const replaceString = '@byondxr/legend-state';
+
+replaceStringInFiles(directoryPath, searchString, replaceString);
