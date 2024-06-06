@@ -3,7 +3,6 @@
     "version": "2.1.15",
     "description": "legend-state",
     "sideEffects": false,
-    "public": true,
     "main": "./index.js",
     "module": "./index.mjs",
     "types": "./index.d.ts",
@@ -168,7 +167,8 @@
     },
     "homepage": "https://github.com/LegendApp/legend-state#readme",
     "publishConfig": {
-        "registry": "https://registry.npmjs.org/"
+        "registry": "https://registry.npmjs.org/",
+		"access": "public"
     },
     "commitlint": {
         "extends": [
