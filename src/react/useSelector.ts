@@ -2,7 +2,6 @@ import {
     computeSelector,
     isObservable,
     isPrimitive,
-    isPromise,
     ListenerParams,
     Observable,
     Selector,

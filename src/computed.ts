@@ -5,14 +5,7 @@ import { getNode, getNodeValue, setNodeValue } from './globals';
 import { isObservable, lockObservable } from './helpers';
 import { isPromise } from './is';
 import { observable } from './observable';
-import {
-    ObservableComputed,
-    ObservableComputedTwoWay,
-    ObservableObject,
-    ObservableReadable,
-    ObservableState,
-    WithState,
-} from './observableInterfaces';
+import { ObservableComputed, ObservableComputedTwoWay, ObservableReadable, WithState } from './observableInterfaces';
 import { observe } from './observe';
 import { onChange } from './onChange';
 
