@@ -1,15 +1,24 @@
-import { set as setBase } from './ObservableObject';
+import { getProxy, set as setBase } from './ObservableObject';
 import { batch, notify } from './batching';
+import { createObservable } from './createObservable';
 import { getNode, getNodeValue, setNodeValue } from './globals';
 import { isObservable, lockObservable } from './helpers';
 import { isPromise } from './is';
 import { observable } from './observable';
-import { ObservableComputed, ObservableComputedTwoWay, ObservableReadable } from './observableInterfaces';
+import {
+    ObservableComputed,
+    ObservableComputedTwoWay,
+    ObservableObject,
+    ObservableReadable,
+    ObservableState,
+    WithState,
+} from './observableInterfaces';
 import { observe } from './observe';
 import { onChange } from './onChange';
 
-export function computed<T extends ObservableReadable>(compute: () => T | Promise<T>): T;
-export function computed<T>(compute: () => T | Promise<T>): ObservableComputed<T>;
+export function computed<T extends ObservableReadable>(compute: () => T | Promise<T>): T & WithState;
+export function computed<T>(compute: () => Promise<T>): ObservableComputed<T & WithState>;
+export function computed<T>(compute: () => T): ObservableComputed<T>;
 export function computed<T, T2 = T>(
     compute: (() => T | Promise<T>) | ObservableReadable<T>,
     set: (value: T2) => void,
@@ -95,11 +104,53 @@ export function computed<T, T2 = T>(
     // Lazily activate the observable when get is called
     node.root.activate = () => {
         node.root.activate = undefined;
+        let first = true;
         observe(
             compute,
             ({ value }) => {
-                if (isPromise<T>(value)) {
-                    value.then((v) => setInner(v));
+                if (isPromise(value)) {
+                    if (!node.state) {
+                        node.state = createObservable(
+                            {
+                                isLoaded: false,
+                            },
+                            false,
+                            getProxy,
+                        ) as any;
+                    }
+
+                    if (first) {
+                        setInner(undefined);
+                        value
+                            .then((v) => {
+                                node.state!.isLoaded.set(true);
+                                setInner(v);
+                            })
+                            .catch((error) => {
+                                node.state!.error.set(error);
+                            });
+                        first = false;
+                    } else {
+                        promiseState(value).then((state) => {
+                            if (state === 'fulfilled') {
+                                value.then((v) => {
+                                    setInner(v);
+                                    node.state!.isLoaded.set(true);
+                                });
+                            } else if (state === 'pending') {
+                                node.state!.isLoaded.set(false);
+                                setInner(undefined);
+                                value
+                                    .then((v) => {
+                                        setInner(v);
+                                        node.state!.isLoaded.set(true);
+                                    })
+                                    .catch((error) => {
+                                        node.state!.error.set(error);
+                                    });
+                            }
+                        });
+                    }
                 } else {
                     setInner(value);
                 }
@@ -116,3 +167,11 @@ export function computed<T, T2 = T>(
 
     return obs as any;
 }
+
+const promiseState = (p: Promise<any>): Promise<'pending' | 'fulfilled' | 'rejected'> => {
+    const t = {};
+    return Promise.race([p, t]).then(
+        (v) => (v === t ? 'pending' : 'fulfilled'),
+        () => 'rejected',
+    );
+};

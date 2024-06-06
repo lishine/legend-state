@@ -138,16 +138,25 @@ export function useSelector<T>(selector: Selector<T>, options?: UseSelectorOptio
         if (options?.suspense) {
             // Note: Although it's not possible for an observable to be a promise, the selector may be a
             // function that returns a Promise, so we handle that case too.
-            if (
-                isPromise(value) ||
-                (!value &&
-                    isObservable(selector) &&
-                    !(selector as unknown as Observable<WithState>).state.isLoaded.get())
-            ) {
+
+            const typedSelector = selector as unknown as Observable<WithState>;
+            if (!value && !typedSelector.state.isLoaded.peek()) {
+                let resolve = (value: unknown) => {
+                    value;
+                };
+                const promise = new Promise((res) => {
+                    resolve = res;
+                });
+                const dispose = typedSelector.state.isLoaded.onChange(({ value: isLoaded }) => {
+                    if (isLoaded === true) {
+                        resolve(undefined);
+                        dispose();
+                    }
+                });
                 if (React.use) {
                     React.use(value);
                 } else {
-                    throw value;
+                    throw promise;
                 }
             }
         }
