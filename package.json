@@ -3,7 +3,7 @@
     "version": "2.1.15",
     "description": "legend-state",
     "sideEffects": false,
-    "private": false,
+    "public": true,
     "main": "./index.js",
     "module": "./index.mjs",
     "types": "./index.d.ts",
