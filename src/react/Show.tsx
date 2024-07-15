@@ -25,7 +25,7 @@ export function Show<T>({ if: if_, ifReady, else: else_, wrap, children }: Props
     const value = useSelector(if_ ?? ifReady);
     const show = ifReady !== undefined ? isObservableValueReady(value) : value;
     const child = useSelector(
-        show ? (isFunction(children) ? () => children(value) : (children as any)) : else_ ?? null,
+        show ? (isFunction(children) ? () => children(value) : (children as any)) : (else_ ?? null),
         { skipCheck: true },
     );
 

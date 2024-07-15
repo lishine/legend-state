@@ -58,3 +58,42 @@ async function fix_To$(path: string) {
 }
 fix_To$('dist/config/enable$GetSet.d.ts');
 fix_To$('dist/config/enable$GetSet.d.mts');
+
+// Recursive function to traverse directories
+function replaceStringInFiles(dirPath: string, searchString: string, replaceString: string) {
+    const files = fs.readdirSync(dirPath);
+
+    for (const file of files) {
+        const filePath = path.join(dirPath, file);
+        const stats = fs.statSync(filePath);
+
+        if (stats.isDirectory()) {
+            replaceStringInFiles(filePath, searchString, replaceString);
+        } else if (stats.isFile()) {
+            fs.readFile(filePath, 'utf8', (err, data) => {
+                if (err) {
+                    console.error(`Error reading file ${filePath}:`, err);
+                    return;
+                }
+
+                const updatedData = data.replace(searchString, replaceString);
+
+                if (updatedData !== data) {
+                    fs.writeFile(filePath, updatedData, 'utf8', (err) => {
+                        if (err) {
+                            console.error(`Error writing file ${filePath}:`, err);
+                        } else {
+                            console.log(`Updated file: ${filePath}`);
+                        }
+                    });
+                }
+            });
+        }
+    }
+}
+
+const directoryPath = 'dist';
+const searchString = '@legendapp/state';
+const replaceString = '@byondxr/legend-state';
+
+replaceStringInFiles(directoryPath, searchString, replaceString);

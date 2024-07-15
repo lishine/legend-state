@@ -1,9 +1,8 @@
 {
-  "name": "@legendapp/state",
+  "name": "@byondxr/legend-state",
   "version": "3.0.0-alpha.27",
   "description": "legend-state",
   "sideEffects": false,
-  "private": true,
   "main": "./index.js",
   "module": "./index.mjs",
   "types": "./index.d.ts",
