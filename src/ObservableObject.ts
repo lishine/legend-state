@@ -511,7 +511,6 @@ const proxyHandler: ProxyHandler<any> = {
                             : (val: any, index: number, array: any[]) => {
                                   return cbOrig(getProxy(node, index + '', val), index, array);
                               };
-
                         if (isReduce || !ArrayLoopersReturn.has(p)) {
                             return value[p](cbWrapped, thisArg);
                         }
@@ -625,12 +624,19 @@ const proxyHandler: ProxyHandler<any> = {
     },
     has(node: NodeValue, prop: string) {
         const value = getNodeValue(node);
-        return Reflect.has(value, prop);
+        if (!value) {
+            console.warn('[legend-state]: Error: Cannot check has on a non-object:', { prop, value, node });
+        }
+        return value && Reflect.has(value, prop);
     },
     apply(target, thisArg, argArray) {
         // If it's a function call it as a function
         if (isObservable(thisArg)) {
             thisArg = thisArg.peek();
+        }
+        // AS lookup table for object
+        if (target.lazyFn?.__stringify_param) {
+            return proxyHandler.get!(target, JSON.stringify(argArray[0]), thisArg);
         }
         return Reflect.apply(target.lazyFn || target, thisArg, argArray);
     },
@@ -851,7 +857,7 @@ function updateNodesAndNotify(
             isPrim && isRoot ? node : childNode,
             newValue,
             prevValue,
-            level ?? prevValue === undefined ? -1 : hasADiff ? 0 : 1,
+            (level ?? prevValue === undefined) ? -1 : hasADiff ? 0 : 1,
             whenOptimizedOnlyIf,
         );
     }

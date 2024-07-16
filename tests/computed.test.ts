@@ -11,6 +11,7 @@ import {
     syncState,
     when,
 } from '../index';
+import { callableObservable } from '../src/observable';
 import { synced } from '../sync';
 import { expectChangeHandler, promiseTimeout } from './testglobals';
 
@@ -1306,6 +1307,10 @@ describe('lookup', () => {
     test('lookup basic', async () => {
         const obs = observable((key: string) => 'proxied_' + key);
         expect(obs.test.get()).toEqual('proxied_test');
+    });
+    test('serializable param lookup', async () => {
+        const obs = callableObservable((p: { a: number }) => ({ b: p.a }));
+        expect(obs({ a: 1 }).b.get()).toEqual(1);
     });
     test('lookup is not called with undefined key', async () => {
         const obs = observable({

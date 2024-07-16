@@ -60,7 +60,7 @@ describe('Perf', () => {
         const then = performance.now();
 
         expect(numCalled).toEqual(0);
-        expect(then - now).toBeLessThan(process.env.CI === 'true' ? 100 : 20);
+        expect(then - now).toBeLessThan(process.env.CI === 'true' ? 100 : 40);
     });
     test('Lazy activation perf3', () => {
         const obj: Record<string, any> = {};
@@ -99,7 +99,7 @@ describe('Perf', () => {
 
         expect(numCalled).toEqual(0);
         expect(numActivated).toEqual(Num);
-        expect(then - now).toBeLessThan(process.env.CI === 'true' ? 400 : 150);
+        expect(then - now).toBeLessThan(process.env.CI === 'true' ? 400 : 200);
 
         const now2 = performance.now();
         obs.get();

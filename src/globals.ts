@@ -168,6 +168,9 @@ export function getChildNode(node: NodeValue, key: string, asFunction?: Function
         };
         // Lookup functions are bound with the child key
         if (node.lazyFn?.length === 1) {
+            if ((node.lazyFn as any).__stringify_param) {
+                key = JSON.parse(key);
+            }
             asFunction = node.lazyFn.bind(node, key);
         }
         if (isFunction(asFunction)) {
