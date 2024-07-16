@@ -635,7 +635,8 @@ const proxyHandler: ProxyHandler<any> = {
             thisArg = thisArg.peek();
         }
         // AS lookup table for object
-        if (target.lazyFn?.__stringify_param) {
+        if (target.lazyFn?.__stringify_param && target.lazyFn?.length === 1 && typeof argArray[0] === 'object') {
+            target.lazyFn.__param_stringified = true;
             return proxyHandler.get!(target, JSON.stringify(argArray[0]), thisArg);
         }
         return Reflect.apply(target.lazyFn || target, thisArg, argArray);
