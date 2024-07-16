@@ -35,7 +35,7 @@ export {
     isSymbol,
 } from './src/is';
 export { linked } from './src/linked';
-export { observable, observablePrimitive } from './src/observable';
+export { observable, observablePrimitive, callableObservable } from './src/observable';
 export * from './src/observableInterfaces';
 export * from './src/observableTypes';
 export { observe } from './src/observe';
